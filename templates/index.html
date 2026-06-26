@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Security: Prevent MIME-sniffing and enforce same-origin -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure AI Chatbot - Multi-user isolated conversations">
+    <title>Secure AI Chatbot</title>
+    <!-- Security: All resources loaded from same origin (CSP-compliant) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- ============================================================================ -->
+    <!-- AUTHENTICATION VIEW (Login / Register)                                       -->
+    <!-- Shown when the user is not authenticated. Contains the login form and        -->
+    <!-- registration form with client-side validation.                               -->
+    <!-- ============================================================================ -->
+    <div id="auth-view" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">AI</div>
+                <h1>Secure Chatbot</h1>
+                <p class="auth-subtitle">AI-Powered Conversations, Secured</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form" novalidate>
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input
+                        type="text"
+                        id="login-username"
+                        name="username"
+                        autocomplete="username"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        placeholder="Enter your username"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                        minlength="8"
+                        placeholder="Enter your password"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Sign In
+                </button>
+                <p class="auth-toggle">
+                    Don't have an account?
+                    <button type="button" class="link-btn" id="show-register">
+                        Create Account
+                    </button>
+                </p>
+                <div class="error-message" id="login-error"></div>
+            </form>
+
+            <!-- Registration Form (Hidden by default) -->
+            <form id="register-form" class="auth-form hidden" novalidate>
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input
+                        type="text"
+                        id="register-username"
+                        name="username"
+                        autocomplete="username"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        placeholder="Choose a username"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input
+                        type="password"
+                        id="register-password"
+                        name="password"
+                        autocomplete="new-password"
+                        required
+                        minlength="8"
+                        placeholder="Choose a password (min 8 chars)"
+                    >
+                    <small class="field-hint">Must be at least 8 characters</small>
+                </div>
+                <div class="form-group">
+                    <label for="register-password-confirm">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="register-password-confirm"
+                        name="password_confirm"
+                        autocomplete="new-password"
+                        required
+                        minlength="8"
+                        placeholder="Re-enter your password"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Create Account
+                </button>
+                <p class="auth-toggle">
+                    Already have an account?
+                    <button type="button" class="link-btn" id="show-login">
+                        Sign In
+                    </button>
+                </p>
+                <div class="error-message" id="register-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- MAIN APPLICATION VIEW (Split-Pane Dashboard)                                  -->
+    <!-- Shown when the user is authenticated. Contains:                               -->
+    <!--   - Sidebar: User info, new chat button, logout                             -->
+    <!--   - Main: Chat message area + input                                         -->
+    <!-- ============================================================================ -->
+    <div id="chat-view" class="app-container hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon small">AI</div>
+                <span class="app-title">SecureBot</span>
+            </div>
+
+            <div class="sidebar-actions">
+                <button id="new-chat-btn" class="btn btn-new-chat">
+                    <span class="icon">+</span> New Chat
+                </button>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <h3>Your Conversation</h3>
+                    <p class="nav-hint">All messages are encrypted and isolated to your account.</p>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar"></div>
+                    <div class="user-details">
+                        <span class="user-name" id="sidebar-username">User</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn btn-logout">
+                    <span class="icon">&#x2192;</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <h2 id="chat-title">New Conversation</h2>
+                <div class="header-status">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Secure Connection</span>
+                </div>
+            </header>
+
+            <!-- Messages Area -->
+            <!-- SECURITY: Messages are rendered via textContent, never innerHTML. -->
+            <!-- This prevents XSS attacks where an AI response might contain     -->
+            <!-- malicious HTML/JS payloads.                                       -->
+            <div id="messages-container" class="messages-container">
+                <!-- Welcome message rendered by JavaScript -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <form id="chat-form" class="chat-form" novalidate>
+                    <div class="input-wrapper">
+                        <textarea
+                            id="message-input"
+                            placeholder="Type your message..."
+                            rows="1"
+                            maxlength="2000"
+                            required
+                        ></textarea>
+                        <button
+                            type="submit"
+                            id="send-btn"
+                            class="btn btn-send"
+                            aria-label="Send message"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="input-hint">
+                        <span id="char-count">0</span>/2000 characters
+                        <span class="rate-limit-indicator" id="rate-indicator"></span>
+                    </small>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- TOAST NOTIFICATIONS                                                          -->
+    <!-- Used for transient alerts (errors, rate limits, etc.)                        -->
+    <!-- ============================================================================ -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Load JavaScript at end of body for performance -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

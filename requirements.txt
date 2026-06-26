@@ -1,0 +1,26 @@
+# =============================================================================
+# SECURE AI CHATBOT - PYTHON DEPENDENCIES
+# =============================================================================
+# Install with: pip install -r requirements.txt
+# =============================================================================
+
+# Web Framework
+Flask==3.0.3
+
+# Environment Variable Management (SECURITY: Never hardcode credentials)
+python-dotenv==1.0.1
+
+# Rate Limiting (Prevents API abuse and DoS)
+Flask-Limiter==3.7.0
+
+# Password Hashing (Bcrypt with automatic salting)
+bcrypt==4.1.3
+
+# OpenAI API Client (GPT-4 integration)
+openai==1.35.3
+
+# Production WSGI Server (Replace Flask dev server in production)
+gunicorn==22.0.0
+
+# Redis backend for rate limiting (Recommended for production)
+# Uncomment if using Redis: redis==5.0.6
